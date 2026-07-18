@@ -372,7 +372,7 @@ Add a Terraform `data` source to reference this secret ARN in Lambda environment
 - Read invoice from DynamoDB (same tenant isolation pattern)
 - Calculate `days_overdue` from `due_date` to today
 - Fetch Gemini API key from Secrets Manager
-- Call Gemini (`gemini-2.5-flash`) with this prompt logic:
+- Call Gemini (`gemini-flash-latest` -- an alias, not a pinned version, since specific Gemini model IDs get deprecated for new API keys without notice) with this prompt logic:
   - Under 14 days overdue: firm but polite
   - 14 to 30 days overdue: urgent
   - Over 30 days: final notice

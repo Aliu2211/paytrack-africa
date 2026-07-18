@@ -12,7 +12,7 @@ invoices_table = dynamodb.Table(os.environ["INVOICES_TABLE"])
 secretsmanager = boto3.client("secretsmanager")
 
 GEMINI_SECRET_ARN = os.environ["GEMINI_SECRET_ARN"]
-GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_MODEL = "gemini-flash-latest"
 
 TONE_BY_DAYS_OVERDUE = [
     (14, "firm but polite"),
