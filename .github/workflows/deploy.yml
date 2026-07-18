@@ -1,0 +1,41 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pytest boto3 moto google-genai reportlab
+      - run: pytest tests/ -v
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - run: bash scripts/package_lambdas.sh
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform init
+        working-directory: infrastructure
+      - run: terraform plan -var="state_bucket_name=${{ secrets.TF_STATE_BUCKET }}"
+        working-directory: infrastructure
+      - run: terraform apply -auto-approve -var="state_bucket_name=${{ secrets.TF_STATE_BUCKET }}"
+        working-directory: infrastructure
