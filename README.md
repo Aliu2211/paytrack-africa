@@ -12,11 +12,30 @@ Full build spec: [PayTrack_FullBuildSpec.md](PayTrack_FullBuildSpec.md).
 
 ## Architecture
 
-```
-Client request -> API Gateway -> Cognito authorizer -> Lambda -> DynamoDB
-EventBridge (daily 8am Ghana time) -> payment_reminder Lambda -> SNS + SES
-POST /invoices/{id}/collect -> ai_collections Lambda -> Gemini -> DynamoDB
-POST /invoices/{id}/pdf -> invoice_pdf Lambda -> S3 (presigned URL)
+```mermaid
+flowchart TD
+    Client([Client]) -->|"HTTPS + Cognito JWT"| APIGW[API Gateway]
+    APIGW --> Auth{Cognito Authorizer}
+
+    Auth -->|authorized| CRUD["invoice_create / _get /<br/>_list / _update"]
+    Auth -->|authorized| Collect[ai_collections]
+    Auth -->|authorized| PDF[invoice_pdf]
+
+    CRUD --> DDB[("DynamoDB<br/>tenant_id partition key")]
+    Collect --> DDB
+    PDF --> DDB
+
+    Collect --> Gemini[[Gemini API]]
+    Secrets[("Secrets Manager<br/>Gemini API key")] -.-> Collect
+
+    PDF --> S3PDF[("S3<br/>invoice PDFs, 7-day lifecycle")]
+
+    EventBridge[["EventBridge<br/>cron 8am Ghana time"]] --> Reminder[payment_reminder]
+    Reminder --> DDB
+    Reminder --> SNS[[SNS Topic]]
+    Reminder --> SES[[SES Email]]
+
+    CognitoPool[("Cognito User Pool<br/>custom:tenant_id claim")] -.-> Auth
 ```
 
 **AWS services used:**
