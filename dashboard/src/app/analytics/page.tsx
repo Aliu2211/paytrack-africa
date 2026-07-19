@@ -10,7 +10,7 @@ const STATUSES: InvoiceStatus[] = ["draft", "sent", "paid", "cancelled"];
 const STATUS_COLORS: Record<InvoiceStatus, string> = {
   draft: "bg-gray-300",
   sent: "bg-blue-400",
-  paid: "bg-brand-500",
+  paid: "bg-gradient-to-t from-brand-600 to-brand-400",
   cancelled: "bg-red-400",
 };
 
@@ -38,9 +38,9 @@ export default function AnalyticsPage() {
   if (error) return <p className="text-sm text-red-600">{error}</p>;
   if (!invoices) {
     return (
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-5 sm:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-24 animate-pulse rounded-xl border border-gray-200 bg-white" />
+          <div key={i} className="h-28 animate-pulse rounded-2xl border border-gray-200 bg-white" />
         ))}
       </div>
     );
@@ -68,51 +68,55 @@ export default function AnalyticsPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">Analytics</h1>
-        <p className="mt-0.5 text-sm text-gray-500">Overview of your receivables</p>
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Analytics</h1>
+        <p className="mt-1 text-sm text-gray-500">Overview of your receivables</p>
       </div>
 
-      <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="mb-6 grid grid-cols-2 gap-5 sm:grid-cols-4">
         <StatCard
           label="Total Invoices"
           value={totalInvoices.toString()}
           icon={FileStack}
-          accent="bg-gray-100 text-gray-600"
+          accent="from-gray-500 to-gray-700"
+          border="border-l-gray-400"
         />
         <StatCard
           label="Outstanding"
           value={formatAmount(totalOutstanding, currency)}
           icon={Clock}
-          accent="bg-blue-50 text-blue-600"
+          accent="from-blue-500 to-blue-700"
+          border="border-l-blue-400"
         />
         <StatCard
           label="Paid This Month"
           value={formatAmount(totalPaidThisMonth, currency)}
           icon={CheckCircle2}
-          accent="bg-brand-50 text-brand-600"
+          accent="from-brand-500 to-brand-700"
+          border="border-l-brand-500"
         />
         <StatCard
           label="Overdue"
           value={overdueCount.toString()}
           icon={AlertTriangle}
-          accent="bg-red-50 text-red-600"
+          accent="from-red-500 to-red-700"
+          border="border-l-red-400"
         />
       </div>
 
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-6 text-sm font-medium text-gray-500">Invoices by Status</h2>
-        <div className="flex h-44 items-end gap-8 px-2">
+      <div className="rounded-2xl border border-gray-200 bg-white p-7 shadow-sm shadow-gray-200/50">
+        <h2 className="mb-7 text-sm font-medium text-gray-500">Invoices by Status</h2>
+        <div className="flex h-48 items-end gap-10 px-2">
           {STATUSES.map((status) => (
-            <div key={status} className="flex flex-1 flex-col items-center gap-2">
-              <span className="text-sm font-semibold text-gray-900">{countByStatus[status]}</span>
+            <div key={status} className="flex flex-1 flex-col items-center gap-2.5">
+              <span className="text-base font-semibold text-gray-900">{countByStatus[status]}</span>
               <div className="flex h-32 w-full items-end">
                 <div
-                  className={`w-full rounded-t-md transition-all ${STATUS_COLORS[status]}`}
+                  className={`w-full rounded-t-lg transition-all ${STATUS_COLORS[status]}`}
                   style={{ height: `${Math.max(4, (countByStatus[status] / maxCount) * 100)}%` }}
                 />
               </div>
-              <span className="text-xs capitalize text-gray-500">{status}</span>
+              <span className="text-xs font-medium capitalize text-gray-500">{status}</span>
             </div>
           ))}
         </div>
@@ -126,19 +130,21 @@ function StatCard({
   value,
   icon: Icon,
   accent,
+  border,
 }: {
   label: string;
   value: string;
   icon: React.ComponentType<{ size?: number }>;
   accent: string;
+  border: string;
 }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-      <div className={`mb-3 flex h-8 w-8 items-center justify-center rounded-lg ${accent}`}>
+    <div className={`rounded-2xl border border-l-4 border-gray-200 bg-white p-5 shadow-sm shadow-gray-200/50 ${border}`}>
+      <div className={`mb-3.5 flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br text-white shadow-sm ${accent}`}>
         <Icon size={16} />
       </div>
-      <p className="text-xs text-gray-500">{label}</p>
-      <p className="mt-0.5 text-lg font-semibold text-gray-900">{value}</p>
+      <p className="text-xs font-medium text-gray-500">{label}</p>
+      <p className="mt-1 text-xl font-semibold tracking-tight text-gray-900">{value}</p>
     </div>
   );
 }

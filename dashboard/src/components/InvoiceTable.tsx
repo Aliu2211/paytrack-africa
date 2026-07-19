@@ -18,19 +18,19 @@ export default function InvoiceTable({ invoices }: { invoices: Invoice[] }) {
   return (
     <table className="w-full text-left text-sm">
       <thead>
-        <tr className="border-b border-gray-200 text-xs uppercase tracking-wide text-gray-400">
-          <th className="py-2.5 pr-4 font-medium">Invoice</th>
-          <th className="py-2.5 pr-4 font-medium">Client</th>
-          <th className="py-2.5 pr-4 font-medium">Amount</th>
-          <th className="py-2.5 pr-4 font-medium">Status</th>
-          <th className="py-2.5 pr-4 font-medium">Due date</th>
-          <th className="py-2.5 pr-4"></th>
+        <tr className="text-xs font-medium uppercase tracking-wide text-gray-400">
+          <th className="border-b border-gray-100 py-3 pr-4">Invoice</th>
+          <th className="border-b border-gray-100 py-3 pr-4">Client</th>
+          <th className="border-b border-gray-100 py-3 pr-4">Amount</th>
+          <th className="border-b border-gray-100 py-3 pr-4">Status</th>
+          <th className="border-b border-gray-100 py-3 pr-4">Due date</th>
+          <th className="border-b border-gray-100 py-3 pr-4"></th>
         </tr>
       </thead>
       <tbody>
         {invoices.map((invoice) => (
-          <tr key={invoice.invoice_id} className="group border-b border-gray-100 last:border-0 hover:bg-gray-50">
-            <td className="py-3.5 pr-4">
+          <tr key={invoice.invoice_id} className="group border-b border-gray-50 last:border-0 hover:bg-gray-50/80">
+            <td className="py-4 pr-4">
               <Link
                 href={`/invoices/${invoice.invoice_id}`}
                 className="font-medium text-gray-900 hover:text-brand-700"
@@ -38,15 +38,15 @@ export default function InvoiceTable({ invoices }: { invoices: Invoice[] }) {
                 #{invoice.invoice_number}
               </Link>
             </td>
-            <td className="py-3.5 pr-4 text-gray-700">{invoice.client_name}</td>
-            <td className="py-3.5 pr-4 font-medium text-gray-900">
+            <td className="py-4 pr-4 text-gray-700">{invoice.client_name}</td>
+            <td className="py-4 pr-4 font-medium text-gray-900">
               {formatAmount(invoice.amount, invoice.currency)}
             </td>
-            <td className="py-3.5 pr-4">
+            <td className="py-4 pr-4">
               <StatusBadge status={invoice.status} />
             </td>
-            <td className="py-3.5 pr-4 text-gray-500">{formatDate(invoice.due_date)}</td>
-            <td className="py-3.5 pr-2 text-right">
+            <td className="py-4 pr-4 text-gray-500">{formatDate(invoice.due_date)}</td>
+            <td className="py-4 pr-2 text-right">
               <Link
                 href={`/invoices/${invoice.invoice_id}`}
                 className="inline-flex items-center text-gray-300 opacity-0 transition-opacity group-hover:opacity-100 group-hover:text-brand-600"

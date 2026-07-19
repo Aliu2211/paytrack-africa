@@ -108,49 +108,53 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
     <div>
       {backLink}
 
-      <div className="mt-4 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="mb-5 flex items-start justify-between">
+      <div className="mt-5 rounded-2xl border border-gray-200 bg-white p-8 shadow-sm shadow-gray-200/50">
+        <div className="mb-6 flex items-start justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">Invoice #{invoice.invoice_number}</h1>
-            <p className="mt-1 text-sm text-gray-500">{invoice.client_name}</p>
+            <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
+              Invoice #{invoice.invoice_number}
+            </h1>
+            <p className="mt-1.5 text-sm text-gray-500">{invoice.client_name}</p>
           </div>
           <StatusBadge status={invoice.status} />
         </div>
 
-        <dl className="grid grid-cols-2 gap-x-6 gap-y-4 rounded-lg bg-gray-50 p-4 text-sm sm:grid-cols-4">
+        <dl className="grid grid-cols-2 gap-x-8 gap-y-5 rounded-xl bg-gradient-to-br from-gray-50 to-gray-50/50 p-5 text-sm sm:grid-cols-4">
           <div>
-            <dt className="text-xs uppercase tracking-wide text-gray-400">Client email</dt>
-            <dd className="mt-1 text-gray-900">{invoice.client_email}</dd>
+            <dt className="text-xs font-medium uppercase tracking-wide text-gray-400">Client email</dt>
+            <dd className="mt-1.5 text-gray-900">{invoice.client_email}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-wide text-gray-400">Amount</dt>
-            <dd className="mt-1 font-medium text-gray-900">{formatAmount(invoice.amount, invoice.currency)}</dd>
+            <dt className="text-xs font-medium uppercase tracking-wide text-gray-400">Amount</dt>
+            <dd className="mt-1.5 text-base font-semibold text-gray-900">
+              {formatAmount(invoice.amount, invoice.currency)}
+            </dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-wide text-gray-400">Due date</dt>
-            <dd className="mt-1 text-gray-900">{formatDate(invoice.due_date)}</dd>
+            <dt className="text-xs font-medium uppercase tracking-wide text-gray-400">Due date</dt>
+            <dd className="mt-1.5 text-gray-900">{formatDate(invoice.due_date)}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-wide text-gray-400">Created</dt>
-            <dd className="mt-1 text-gray-900">{formatDate(invoice.created_at.slice(0, 10))}</dd>
+            <dt className="text-xs font-medium uppercase tracking-wide text-gray-400">Created</dt>
+            <dd className="mt-1.5 text-gray-900">{formatDate(invoice.created_at.slice(0, 10))}</dd>
           </div>
           {invoice.description && (
             <div className="col-span-2 sm:col-span-4">
-              <dt className="text-xs uppercase tracking-wide text-gray-400">Description</dt>
-              <dd className="mt-1 text-gray-900">{invoice.description}</dd>
+              <dt className="text-xs font-medium uppercase tracking-wide text-gray-400">Description</dt>
+              <dd className="mt-1.5 text-gray-900">{invoice.description}</dd>
             </div>
           )}
         </dl>
 
-        {error && <p className="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+        {error && <p className="mt-5 rounded-lg bg-red-50 px-3.5 py-2.5 text-sm text-red-700">{error}</p>}
 
-        <div className="mt-6 flex flex-wrap gap-2 border-t border-gray-100 pt-5">
+        <div className="mt-7 flex flex-wrap gap-2.5 border-t border-gray-100 pt-6">
           {validNextStatuses.map((status) => (
             <button
               key={status}
               onClick={() => handleTransition(status)}
               disabled={updating}
-              className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-50"
+              className="rounded-lg bg-gradient-to-b from-brand-500 to-brand-600 px-4 py-2.5 text-sm font-medium text-white shadow-md shadow-brand-600/20 transition-all hover:shadow-lg hover:shadow-brand-600/25 disabled:opacity-50"
             >
               Mark as {status}
             </button>
@@ -158,7 +162,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
           <button
             onClick={handleDownloadPdf}
             disabled={generatingPdf}
-            className="flex items-center gap-1.5 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 disabled:opacity-50"
           >
             <Download size={15} />
             {generatingPdf ? "Generating..." : "Download PDF"}
@@ -166,7 +170,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
           <button
             onClick={handleGenerateCollectionsMessage}
             disabled={generatingMessage}
-            className="flex items-center gap-1.5 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 disabled:opacity-50"
           >
             <Sparkles size={15} />
             {generatingMessage ? "Generating..." : "Collections Message"}
@@ -174,13 +178,13 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         </div>
 
         {collectionsMessage && (
-          <div className="mt-4 flex gap-3 rounded-lg border border-brand-100 bg-brand-50 p-4">
+          <div className="mt-5 flex gap-3 rounded-xl border border-brand-100 bg-gradient-to-br from-brand-50 to-white p-5">
             <Quote className="mt-0.5 shrink-0 text-brand-500" size={18} />
             <div>
-              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-brand-700">
+              <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-brand-700">
                 AI Collections Message
               </p>
-              <p className="text-sm text-gray-800">{collectionsMessage}</p>
+              <p className="text-sm leading-relaxed text-gray-800">{collectionsMessage}</p>
             </div>
           </div>
         )}

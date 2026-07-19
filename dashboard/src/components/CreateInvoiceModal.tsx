@@ -53,11 +53,11 @@ export default function CreateInvoiceModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl"
+        className="w-full max-w-md rounded-2xl bg-white p-7 shadow-2xl shadow-gray-900/10"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Create Invoice</h2>
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-lg font-semibold tracking-tight text-gray-900">Create Invoice</h2>
           <button
             onClick={onClose}
             className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
@@ -144,7 +144,7 @@ export default function CreateInvoiceModal({
             <button
               type="submit"
               disabled={submitting}
-              className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-50"
+              className="rounded-lg bg-gradient-to-b from-brand-500 to-brand-600 px-4 py-2.5 text-sm font-medium text-white shadow-md shadow-brand-600/20 transition-all hover:shadow-lg hover:shadow-brand-600/25 disabled:opacity-50"
             >
               {submitting ? "Creating..." : "Create Invoice"}
             </button>

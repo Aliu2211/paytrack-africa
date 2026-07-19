@@ -67,34 +67,34 @@ export default function InvoicesPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Invoices</h1>
-          <p className="mt-0.5 text-sm text-gray-500">Manage and track client invoices</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Invoices</h1>
+          <p className="mt-1 text-sm text-gray-500">Manage and track client invoices</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-1.5 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700"
+          className="flex items-center gap-1.5 rounded-lg bg-gradient-to-b from-brand-500 to-brand-600 px-4 py-2.5 text-sm font-medium text-white shadow-md shadow-brand-600/20 transition-all hover:shadow-lg hover:shadow-brand-600/25"
         >
           <Plus size={16} />
           Create Invoice
         </button>
       </div>
 
-      <div className="mb-4 flex gap-3">
+      <div className="mb-5 flex gap-3">
         <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
           <input
             placeholder="Search by client name..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-md border border-gray-300 py-2 pl-9 pr-3 text-sm shadow-sm outline-none transition-shadow focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+            className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-3 text-sm shadow-sm outline-none transition-shadow focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as InvoiceStatus | "")}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm outline-none transition-shadow focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+          className="rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm shadow-sm outline-none transition-shadow focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
         >
           {STATUS_OPTIONS.map((status) => (
             <option key={status} value={status}>
@@ -104,7 +104,7 @@ export default function InvoicesPage() {
         </select>
       </div>
 
-      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm shadow-gray-200/50">
         {loading && <TableSkeleton />}
         {error && !loading && (
           <p className="py-8 text-center text-sm text-red-600">{error}</p>
@@ -112,11 +112,11 @@ export default function InvoicesPage() {
         {!loading && !error && <InvoiceTable invoices={filteredInvoices} />}
       </div>
 
-      <div className="mt-4 flex items-center justify-end gap-2">
+      <div className="mt-5 flex items-center justify-end gap-2">
         <button
           onClick={goPrevious}
           disabled={cursorStack.length === 0}
-          className="flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-sm text-gray-600 shadow-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
         >
           <ChevronLeft size={14} />
           Previous
@@ -124,7 +124,7 @@ export default function InvoicesPage() {
         <button
           onClick={goNext}
           disabled={!nextCursor}
-          className="flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-sm text-gray-600 shadow-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
         >
           Next
           <ChevronRight size={14} />
@@ -145,7 +145,7 @@ function TableSkeleton() {
   return (
     <div className="animate-pulse space-y-3 py-2">
       {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="h-10 rounded-md bg-gray-100" />
+        <div key={i} className="h-11 rounded-lg bg-gray-100" />
       ))}
     </div>
   );
