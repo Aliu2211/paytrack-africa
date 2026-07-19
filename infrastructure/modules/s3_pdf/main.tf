@@ -1,5 +1,6 @@
 resource "aws_s3_bucket" "pdfs" {
-  bucket = "${var.project_name}-invoices-pdf-${var.environment}"
+  bucket        = "${var.project_name}-invoices-pdf-${var.environment}"
+  force_destroy = true
 }
 
 resource "aws_s3_bucket_public_access_block" "pdfs" {

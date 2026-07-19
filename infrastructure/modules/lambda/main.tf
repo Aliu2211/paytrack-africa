@@ -94,6 +94,19 @@ resource "aws_iam_role_policy" "gemini_secret_access" {
   policy = data.aws_iam_policy_document.gemini_secret_access.json
 }
 
+data "aws_iam_policy_document" "xray_tracing" {
+  statement {
+    actions   = ["xray:PutTraceSegments", "xray:PutTelemetryRecords"]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "xray_tracing" {
+  name   = "${var.project_name}-lambda-xray-${var.environment}"
+  role   = aws_iam_role.lambda_exec.id
+  policy = data.aws_iam_policy_document.xray_tracing.json
+}
+
 locals {
   common_env_vars = {
     INVOICES_TABLE = var.invoices_table_name
@@ -155,6 +168,10 @@ resource "aws_lambda_function" "this" {
 
   environment {
     variables = merge(local.common_env_vars, lookup(local.function_env_vars, each.value, {}))
+  }
+
+  tracing_config {
+    mode = "PassThrough"
   }
 
   depends_on = [aws_s3_object.this]

@@ -32,3 +32,9 @@ variable "ses_sender_email" {
   description = "Verified SES sender identity for reminder and collections emails"
   default     = "aliutijani21@gmail.com"
 }
+
+variable "engineering_alert_email" {
+  type        = string
+  description = "Email subscribed to the engineering alerts SNS topic for CloudWatch alarms"
+  default     = "aliutijani21@gmail.com"
+}

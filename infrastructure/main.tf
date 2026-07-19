@@ -82,3 +82,18 @@ module "eventbridge" {
   payment_reminder_function_arn  = module.lambda.function_arns["payment_reminder"]
   payment_reminder_function_name = module.lambda.function_names["payment_reminder"]
 }
+
+module "cloudwatch" {
+  source = "./modules/cloudwatch"
+
+  project_name = var.project_name
+  environment  = var.environment
+  aws_region   = var.aws_region
+
+  engineering_alert_email = var.engineering_alert_email
+  lambda_function_names   = module.lambda.function_names
+  api_gateway_name        = "${var.project_name}-api-${var.environment}"
+  api_gateway_stage_name  = var.environment
+
+  depends_on = [module.api_gateway]
+}
