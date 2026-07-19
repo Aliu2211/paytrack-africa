@@ -14,6 +14,13 @@ FUNCTIONS_DIR = REPO_ROOT / "functions"
 TENANT_A = "11111111-aaaa-4aaa-8aaa-111111111111"
 TENANT_B = "22222222-bbbb-4bbb-8bbb-222222222222"
 
+
+class _FakeContext:
+    aws_request_id = "test-request-id"
+
+
+CONTEXT = _FakeContext()
+
 VALID_PAYLOAD = {
     "client_name": "AgroVault Africa Ltd",
     "client_email": "billing@agrovault.africa",
@@ -101,7 +108,7 @@ def update_invoice(dynamodb_tables):
 
 
 def test_create_invoice_success(create_invoice):
-    response = create_invoice(_event(TENANT_A, body=VALID_PAYLOAD), None)
+    response = create_invoice(_event(TENANT_A, body=VALID_PAYLOAD), CONTEXT)
     assert response["statusCode"] == 201
     body = json.loads(response["body"])
     assert body["invoice_id"].startswith("INV-")
@@ -112,45 +119,45 @@ def test_create_invoice_success(create_invoice):
 def test_create_invoice_missing_amount(create_invoice):
     payload = dict(VALID_PAYLOAD)
     del payload["amount"]
-    response = create_invoice(_event(TENANT_A, body=payload), None)
+    response = create_invoice(_event(TENANT_A, body=payload), CONTEXT)
     assert response["statusCode"] == 400
 
 
 def test_create_invoice_missing_client_name(create_invoice):
     payload = dict(VALID_PAYLOAD)
     del payload["client_name"]
-    response = create_invoice(_event(TENANT_A, body=payload), None)
+    response = create_invoice(_event(TENANT_A, body=payload), CONTEXT)
     assert response["statusCode"] == 400
 
 
 def test_get_invoice_success(create_invoice, get_invoice):
-    created = json.loads(create_invoice(_event(TENANT_A, body=VALID_PAYLOAD), None)["body"])
-    response = get_invoice(_event(TENANT_A, path_params={"id": created["invoice_id"]}), None)
+    created = json.loads(create_invoice(_event(TENANT_A, body=VALID_PAYLOAD), CONTEXT)["body"])
+    response = get_invoice(_event(TENANT_A, path_params={"id": created["invoice_id"]}), CONTEXT)
     assert response["statusCode"] == 200
     assert json.loads(response["body"])["invoice_id"] == created["invoice_id"]
 
 
 def test_get_invoice_wrong_tenant(create_invoice, get_invoice):
-    created = json.loads(create_invoice(_event(TENANT_A, body=VALID_PAYLOAD), None)["body"])
-    response = get_invoice(_event(TENANT_B, path_params={"id": created["invoice_id"]}), None)
+    created = json.loads(create_invoice(_event(TENANT_A, body=VALID_PAYLOAD), CONTEXT)["body"])
+    response = get_invoice(_event(TENANT_B, path_params={"id": created["invoice_id"]}), CONTEXT)
     assert response["statusCode"] == 403
 
 
 def test_get_invoice_not_found(get_invoice):
-    response = get_invoice(_event(TENANT_A, path_params={"id": "INV-NOTFOUND-0000"}), None)
+    response = get_invoice(_event(TENANT_A, path_params={"id": "INV-NOTFOUND-0000"}), CONTEXT)
     assert response["statusCode"] == 404
 
 
 def test_list_invoices_empty(list_invoices):
-    response = list_invoices(_event(TENANT_A), None)
+    response = list_invoices(_event(TENANT_A), CONTEXT)
     assert response["statusCode"] == 200
     assert json.loads(response["body"]) == {"invoices": [], "count": 0, "last_evaluated_key": None}
 
 
 def test_list_invoices_own_tenant_only(create_invoice, list_invoices):
-    create_invoice(_event(TENANT_A, body=VALID_PAYLOAD), None)
-    create_invoice(_event(TENANT_B, body=VALID_PAYLOAD), None)
-    response = list_invoices(_event(TENANT_A), None)
+    create_invoice(_event(TENANT_A, body=VALID_PAYLOAD), CONTEXT)
+    create_invoice(_event(TENANT_B, body=VALID_PAYLOAD), CONTEXT)
+    response = list_invoices(_event(TENANT_A), CONTEXT)
     body = json.loads(response["body"])
     assert body["count"] == 1
     assert body["invoices"][0]["tenant_id"] == TENANT_A
@@ -158,34 +165,34 @@ def test_list_invoices_own_tenant_only(create_invoice, list_invoices):
 
 def test_list_invoices_pagination(create_invoice, list_invoices):
     for _ in range(25):
-        create_invoice(_event(TENANT_A, body=VALID_PAYLOAD), None)
-    response = list_invoices(_event(TENANT_A, query_params={"limit": "10"}), None)
+        create_invoice(_event(TENANT_A, body=VALID_PAYLOAD), CONTEXT)
+    response = list_invoices(_event(TENANT_A, query_params={"limit": "10"}), CONTEXT)
     body = json.loads(response["body"])
     assert body["count"] == 10
     assert body["last_evaluated_key"] is not None
 
 
 def test_update_status_draft_to_sent(create_invoice, update_invoice):
-    created = json.loads(create_invoice(_event(TENANT_A, body=VALID_PAYLOAD), None)["body"])
+    created = json.loads(create_invoice(_event(TENANT_A, body=VALID_PAYLOAD), CONTEXT)["body"])
     response = update_invoice(
-        _event(TENANT_A, body={"status": "sent"}, path_params={"id": created["invoice_id"]}), None
+        _event(TENANT_A, body={"status": "sent"}, path_params={"id": created["invoice_id"]}), CONTEXT
     )
     assert response["statusCode"] == 200
     assert json.loads(response["body"])["status"] == "sent"
 
 
 def test_update_status_invalid_transition(create_invoice, update_invoice):
-    created = json.loads(create_invoice(_event(TENANT_A, body=VALID_PAYLOAD), None)["body"])
-    update_invoice(_event(TENANT_A, body={"status": "sent"}, path_params={"id": created["invoice_id"]}), None)
+    created = json.loads(create_invoice(_event(TENANT_A, body=VALID_PAYLOAD), CONTEXT)["body"])
+    update_invoice(_event(TENANT_A, body={"status": "sent"}, path_params={"id": created["invoice_id"]}), CONTEXT)
     response = update_invoice(
-        _event(TENANT_A, body={"status": "draft"}, path_params={"id": created["invoice_id"]}), None
+        _event(TENANT_A, body={"status": "draft"}, path_params={"id": created["invoice_id"]}), CONTEXT
     )
     assert response["statusCode"] == 400
 
 
 def test_update_wrong_tenant(create_invoice, update_invoice):
-    created = json.loads(create_invoice(_event(TENANT_A, body=VALID_PAYLOAD), None)["body"])
+    created = json.loads(create_invoice(_event(TENANT_A, body=VALID_PAYLOAD), CONTEXT)["body"])
     response = update_invoice(
-        _event(TENANT_B, body={"status": "sent"}, path_params={"id": created["invoice_id"]}), None
+        _event(TENANT_B, body={"status": "sent"}, path_params={"id": created["invoice_id"]}), CONTEXT
     )
     assert response["statusCode"] == 403

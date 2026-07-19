@@ -15,6 +15,13 @@ FUNCTIONS_DIR = REPO_ROOT / "functions"
 
 TENANT_A = "11111111-aaaa-4aaa-8aaa-111111111111"
 
+
+class _FakeContext:
+    aws_request_id = "test-request-id"
+
+
+CONTEXT = _FakeContext()
+
 SNS_TOPIC_NAME = "paytrack-payment-reminders-test"
 SES_SENDER_EMAIL = "sender@paytrack-test.africa"
 PDF_BUCKET_NAME = "paytrack-invoices-pdf-test"
@@ -137,7 +144,7 @@ def test_reminder_scans_correct_invoices(aws_resources, payment_reminder):
     _seed_invoice(invoices_table, "INV-DUE-SOON", (today + timedelta(days=2)).isoformat(), "sent")
     _seed_invoice(invoices_table, "INV-DUE-LATER", (today + timedelta(days=10)).isoformat(), "sent")
 
-    summary = payment_reminder.lambda_handler({}, None)
+    summary = payment_reminder.lambda_handler({}, CONTEXT)
 
     assert summary["total_reminded"] == 1
     assert summary["reminded_invoice_ids"] == ["INV-DUE-SOON"]
@@ -148,7 +155,7 @@ def test_reminder_skips_paid_invoices(aws_resources, payment_reminder):
     today = date.today()
     _seed_invoice(invoices_table, "INV-PAID", (today + timedelta(days=2)).isoformat(), "paid")
 
-    summary = payment_reminder.lambda_handler({}, None)
+    summary = payment_reminder.lambda_handler({}, CONTEXT)
 
     assert summary["total_reminded"] == 0
     assert "INV-PAID" not in summary["reminded_invoice_ids"]
@@ -159,7 +166,7 @@ def test_reminder_skips_draft_invoices(aws_resources, payment_reminder):
     today = date.today()
     _seed_invoice(invoices_table, "INV-DRAFT", (today + timedelta(days=2)).isoformat(), "draft")
 
-    summary = payment_reminder.lambda_handler({}, None)
+    summary = payment_reminder.lambda_handler({}, CONTEXT)
 
     assert summary["total_reminded"] == 0
     assert "INV-DRAFT" not in summary["reminded_invoice_ids"]
@@ -171,7 +178,7 @@ def test_pdf_generates_and_uploads(aws_resources, invoice_pdf_module):
     invoice = _seed_invoice(invoices_table, "INV-PDF-TEST", due_date, "sent")
 
     response = invoice_pdf_module.lambda_handler(
-        _event(TENANT_A, path_params={"id": invoice["invoice_id"]}), None
+        _event(TENANT_A, path_params={"id": invoice["invoice_id"]}), CONTEXT
     )
 
     assert response["statusCode"] == 200
@@ -195,7 +202,7 @@ def test_collections_message_low_urgency(aws_resources, ai_collections_module, m
     )
 
     response = ai_collections_module.lambda_handler(
-        _event(TENANT_A, path_params={"id": invoice["invoice_id"]}), None
+        _event(TENANT_A, path_params={"id": invoice["invoice_id"]}), CONTEXT
     )
 
     assert response["statusCode"] == 200
@@ -216,7 +223,7 @@ def test_collections_message_high_urgency(aws_resources, ai_collections_module, 
     )
 
     response = ai_collections_module.lambda_handler(
-        _event(TENANT_A, path_params={"id": invoice["invoice_id"]}), None
+        _event(TENANT_A, path_params={"id": invoice["invoice_id"]}), CONTEXT
     )
 
     assert response["statusCode"] == 200
