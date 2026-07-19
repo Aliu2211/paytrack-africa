@@ -50,6 +50,7 @@ def _event(tenant_id, body=None, path_params=None, query_params=None):
 @pytest.fixture
 def dynamodb_tables():
     with mock_aws():
+        os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
         os.environ["INVOICES_TABLE"] = "paytrack-invoices-test"
         os.environ["TENANTS_TABLE"] = "paytrack-tenants-test"
         os.environ["ENVIRONMENT"] = "test"
