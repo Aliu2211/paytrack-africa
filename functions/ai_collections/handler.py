@@ -26,7 +26,11 @@ TONE_BY_DAYS_OVERDUE = [
 
 
 def _response(status_code, body):
-    return {"statusCode": status_code, "body": json.dumps(body, default=_decimal_default)}
+    return {
+        "statusCode": status_code,
+        "headers": {"Access-Control-Allow-Origin": "*", "Content-Type": "application/json"},
+        "body": json.dumps(body, default=_decimal_default),
+    }
 
 
 def _decimal_default(obj):
