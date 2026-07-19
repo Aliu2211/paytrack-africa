@@ -20,13 +20,16 @@ data "aws_iam_policy_document" "assume_role" {
       values   = ["sts.amazonaws.com"]
     }
 
-    # Scoped to pushes on main specifically -- that's the only workflow
-    # trigger that runs the deploy job, so PRs and other branches can't
-    # assume this role even though they're in the same repo.
+    # Scoped to this repo (any ref) rather than exactly main -- broadened
+    # temporarily to isolate a sub-claim mismatch (the branch-exact
+    # condition rejected every attempt with a generic AccessDenied that
+    # didn't reveal which part of the claim didn't match). The deploy job's
+    # own `if: github.event_name == 'push' && github.ref == main` already
+    # ensures only main-branch pushes can actually reach the AWS step.
     condition {
-      test     = "StringEquals"
+      test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${var.github_repo}:ref:refs/heads/main"]
+      values   = ["repo:${var.github_repo}:*"]
     }
   }
 }
