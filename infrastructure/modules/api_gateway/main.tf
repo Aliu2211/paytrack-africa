@@ -76,6 +76,74 @@ resource "aws_lambda_permission" "apigw" {
   source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
 }
 
+# The dashboard runs on a different origin (localhost:3000 in dev) than the
+# API, and sends a custom Authorization header, so the browser preflights
+# every request with OPTIONS. Without these, the browser blocks the actual
+# request before it's even sent -- curl-based testing never surfaced this
+# since curl isn't subject to CORS.
+locals {
+  cors_resources = {
+    invoices        = aws_api_gateway_resource.invoices.id
+    invoice_id      = aws_api_gateway_resource.invoice_id.id
+    invoice_collect = aws_api_gateway_resource.invoice_collect.id
+    invoice_pdf     = aws_api_gateway_resource.invoice_pdf.id
+  }
+}
+
+resource "aws_api_gateway_method" "options" {
+  for_each = local.cors_resources
+
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = each.value
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "options" {
+  for_each = local.cors_resources
+
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  resource_id = each.value
+  http_method = aws_api_gateway_method.options[each.key].http_method
+  type        = "MOCK"
+
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "options" {
+  for_each = local.cors_resources
+
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  resource_id = each.value
+  http_method = aws_api_gateway_method.options[each.key].http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "options" {
+  for_each = local.cors_resources
+
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  resource_id = each.value
+  http_method = aws_api_gateway_method.options[each.key].http_method
+  status_code = aws_api_gateway_method_response.options[each.key].status_code
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.options]
+}
+
 resource "aws_api_gateway_deployment" "this" {
   rest_api_id = aws_api_gateway_rest_api.this.id
 
@@ -87,6 +155,8 @@ resource "aws_api_gateway_deployment" "this" {
       aws_api_gateway_resource.invoice_pdf.id,
       [for k, v in aws_api_gateway_method.this : v.id],
       [for k, v in aws_api_gateway_integration.this : v.id],
+      [for k, v in aws_api_gateway_method.options : v.id],
+      [for k, v in aws_api_gateway_integration_response.options : v.id],
     ]))
   }
 
@@ -94,7 +164,7 @@ resource "aws_api_gateway_deployment" "this" {
     create_before_destroy = true
   }
 
-  depends_on = [aws_api_gateway_integration.this]
+  depends_on = [aws_api_gateway_integration.this, aws_api_gateway_integration_response.options]
 }
 
 resource "aws_api_gateway_stage" "this" {

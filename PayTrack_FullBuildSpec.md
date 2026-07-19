@@ -141,7 +141,7 @@ Outputs: `tenants_table_name`, `tenants_table_arn`, `invoices_table_name`, `invo
 
 - User pool: email as username, email auto-verified, 8-char password with uppercase/lowercase/numbers
 - Custom schema attributes: `tenant_id` (String, mutable), `business_name` (String, mutable)
-- Client: `ALLOW_USER_PASSWORD_AUTH` and `ALLOW_REFRESH_TOKEN_AUTH`, no secret, 1hr access token, 30 day refresh
+- Client: `ALLOW_USER_PASSWORD_AUTH`, `ALLOW_USER_SRP_AUTH`, and `ALLOW_REFRESH_TOKEN_AUTH`, no secret, 1hr access token, 30 day refresh. `ALLOW_USER_SRP_AUTH` is required for the Phase 4 frontend -- AWS Amplify's `Authenticator` component signs in via SRP by default, not plain `USER_PASSWORD_AUTH`, and the sign-in fails with `USER_SRP_AUTH is not enabled for the client` without it.
 
 Outputs: `user_pool_id`, `user_pool_arn`, `user_pool_client_id`, `user_pool_endpoint`
 
@@ -169,6 +169,7 @@ Outputs: ARN and name of each function
 - Authorizer: `method.request.header.Authorization`, references Cognito user pool ARN
 - Deployment: `depends_on` all integrations, `triggers` block with sha1, `create_before_destroy` lifecycle
 - Lambda permissions: `apigateway.amazonaws.com` can invoke each function
+- **CORS**: add an `OPTIONS` method (MOCK integration) on every resource returning `Access-Control-Allow-Origin`/`-Methods`/`-Headers`, and set `Access-Control-Allow-Origin` on every Lambda's actual JSON response headers (not just the preflight). This wasn't needed until Phase 4's browser-based frontend existed -- `curl`-based testing in Phases 1-3 never triggers CORS since it isn't a browser, so the gap went unnoticed until the dashboard's `fetch()` calls failed with "Failed to fetch."
 
 Outputs: `api_id`, `api_url` (full invoke URL with stage)
 
