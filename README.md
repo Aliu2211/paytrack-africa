@@ -8,7 +8,8 @@ Full build spec: [PayTrack_FullBuildSpec.md](PayTrack_FullBuildSpec.md).
 
 - **Phase 1** (core infra + invoice CRUD API) — done
 - **Phase 2** (payment reminders, AI collections messages, PDF generation) — done
-- Phase 3 (monitoring/alarms), Phase 4 (Next.js dashboard), Phase 5 (analytics + portfolio polish) — not started
+- **Phase 3** (CloudWatch alarms, dashboard, X-Ray tracing, structured logging) — done
+- Phase 4 (Next.js dashboard), Phase 5 (analytics + portfolio polish) — not started
 
 ## Architecture
 
