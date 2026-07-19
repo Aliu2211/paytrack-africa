@@ -75,7 +75,9 @@ def _build_pdf(invoice):
 
 
 def lambda_handler(event, context):
-    tenant_id = event["requestContext"]["authorizer"]["claims"]["custom:tenant_id"]
+    tenant_id = event["requestContext"]["authorizer"]["claims"].get("custom:tenant_id")
+    if not tenant_id:
+        return _response(403, {"message": "No tenant assigned to this account. Contact your administrator."})
     invoice_id = event["pathParameters"]["id"]
     logger.info(json.dumps({
         "event": "invoke_start", "function": "invoice_pdf",

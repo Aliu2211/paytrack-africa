@@ -44,7 +44,9 @@ def _decode_key(token):
 
 
 def lambda_handler(event, context):
-    tenant_id = event["requestContext"]["authorizer"]["claims"]["custom:tenant_id"]
+    tenant_id = event["requestContext"]["authorizer"]["claims"].get("custom:tenant_id")
+    if not tenant_id:
+        return _response(403, {"message": "No tenant assigned to this account. Contact your administrator."})
     logger.info(json.dumps({
         "event": "invoke_start", "function": "invoice_list",
         "tenant_id": tenant_id, "request_id": context.aws_request_id,

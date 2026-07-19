@@ -10,6 +10,32 @@ resource "aws_api_gateway_authorizer" "cognito" {
   identity_source = "method.request.header.Authorization"
 }
 
+# API Gateway's own error responses (401 from the authorizer, 403/404 route
+# errors, 502 on a Lambda crash, etc.) come from API Gateway itself, not the
+# Lambda -- they don't carry whatever headers the Lambda sets. Without CORS
+# headers here too, any of these get reported to the browser as a CORS
+# failure, masking the real error (this is exactly how a 502 from an
+# unhandled Lambda exception showed up as "blocked by CORS policy").
+resource "aws_api_gateway_gateway_response" "default_4xx" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  response_type = "DEFAULT_4XX"
+
+  response_parameters = {
+    "gatewayresponse.header.Access-Control-Allow-Origin"  = "'*'"
+    "gatewayresponse.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'"
+  }
+}
+
+resource "aws_api_gateway_gateway_response" "default_5xx" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  response_type = "DEFAULT_5XX"
+
+  response_parameters = {
+    "gatewayresponse.header.Access-Control-Allow-Origin"  = "'*'"
+    "gatewayresponse.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'"
+  }
+}
+
 resource "aws_api_gateway_resource" "invoices" {
   rest_api_id = aws_api_gateway_rest_api.this.id
   parent_id   = aws_api_gateway_rest_api.this.root_resource_id
@@ -157,6 +183,8 @@ resource "aws_api_gateway_deployment" "this" {
       [for k, v in aws_api_gateway_integration.this : v.id],
       [for k, v in aws_api_gateway_method.options : v.id],
       [for k, v in aws_api_gateway_integration_response.options : v.id],
+      aws_api_gateway_gateway_response.default_4xx.id,
+      aws_api_gateway_gateway_response.default_5xx.id,
     ]))
   }
 
