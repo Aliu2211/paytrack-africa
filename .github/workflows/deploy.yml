@@ -21,6 +21,11 @@ jobs:
     needs: test
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
+    # Required for the OIDC token exchange in configure-aws-credentials --
+    # without this the job has no way to request the token GitHub signs.
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -28,14 +33,13 @@ jobs:
           python-version: "3.12"
       - uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
           aws-region: us-east-1
       - run: bash scripts/package_lambdas.sh
       - uses: hashicorp/setup-terraform@v3
       - run: terraform init
         working-directory: infrastructure
-      - run: terraform plan -var="state_bucket_name=${{ secrets.TF_STATE_BUCKET }}"
+      - run: terraform plan -var="state_bucket_name=paytrack-tf-state-2026"
         working-directory: infrastructure
-      - run: terraform apply -auto-approve -var="state_bucket_name=${{ secrets.TF_STATE_BUCKET }}"
+      - run: terraform apply -auto-approve -var="state_bucket_name=paytrack-tf-state-2026"
         working-directory: infrastructure

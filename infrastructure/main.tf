@@ -97,3 +97,16 @@ module "cloudwatch" {
 
   depends_on = [module.api_gateway]
 }
+
+data "aws_caller_identity" "current" {}
+
+module "github_oidc" {
+  source = "./modules/github_oidc"
+
+  project_name = var.project_name
+  environment  = var.environment
+  github_repo  = var.github_repo
+
+  state_bucket_arn     = "arn:aws:s3:::${var.state_bucket_name}"
+  state_lock_table_arn = "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/paytrack-tf-lock"
+}

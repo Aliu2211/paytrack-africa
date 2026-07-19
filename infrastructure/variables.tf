@@ -38,3 +38,9 @@ variable "engineering_alert_email" {
   description = "Email subscribed to the engineering alerts SNS topic for CloudWatch alarms"
   default     = "aliutijani21@gmail.com"
 }
+
+variable "github_repo" {
+  type        = string
+  description = "GitHub repo in owner/name form, used to scope the CI OIDC role's trust policy"
+  default     = "Aliu2211/paytrack-africa"
+}

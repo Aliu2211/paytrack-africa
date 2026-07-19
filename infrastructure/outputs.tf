@@ -17,3 +17,7 @@ output "invoices_table_name" {
 output "tenants_table_name" {
   value = module.dynamodb.tenants_table_name
 }
+
+output "github_oidc_role_arn" {
+  value = module.github_oidc.role_arn
+}
