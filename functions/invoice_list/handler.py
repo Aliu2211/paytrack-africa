@@ -1,5 +1,6 @@
 import base64
 import json
+import logging
 import os
 from decimal import Decimal
 
@@ -8,6 +9,9 @@ from boto3.dynamodb.conditions import Attr, Key
 
 dynamodb = boto3.resource("dynamodb")
 invoices_table = dynamodb.Table(os.environ["INVOICES_TABLE"])
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 DEFAULT_LIMIT = 20
 MAX_LIMIT = 100
@@ -37,6 +41,10 @@ def _decode_key(token):
 
 def lambda_handler(event, context):
     tenant_id = event["requestContext"]["authorizer"]["claims"]["custom:tenant_id"]
+    logger.info(json.dumps({
+        "event": "invoke_start", "function": "invoice_list",
+        "tenant_id": tenant_id, "request_id": context.aws_request_id,
+    }))
     params = event.get("queryStringParameters") or {}
 
     status = params.get("status")
@@ -73,6 +81,10 @@ def lambda_handler(event, context):
 
     result = invoices_table.query(**query_kwargs)
 
+    logger.info(json.dumps({
+        "event": "invoke_end", "function": "invoice_list",
+        "tenant_id": tenant_id, "request_id": context.aws_request_id,
+    }))
     return _response(200, {
         "invoices": result.get("Items", []),
         "count": result.get("Count", 0),

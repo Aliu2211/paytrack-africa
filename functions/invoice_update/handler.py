@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -9,6 +10,9 @@ from botocore.exceptions import ClientError
 
 dynamodb = boto3.resource("dynamodb")
 invoices_table = dynamodb.Table(os.environ["INVOICES_TABLE"])
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 IMMUTABLE_FIELDS = {"tenant_id", "invoice_id", "created_at"}
 
@@ -32,6 +36,10 @@ def _decimal_default(obj):
 def lambda_handler(event, context):
     tenant_id = event["requestContext"]["authorizer"]["claims"]["custom:tenant_id"]
     invoice_id = event["pathParameters"]["id"]
+    logger.info(json.dumps({
+        "event": "invoke_start", "function": "invoice_update",
+        "tenant_id": tenant_id, "request_id": context.aws_request_id,
+    }))
     body = json.loads(event.get("body") or "{}", parse_float=Decimal)
 
     existing = invoices_table.get_item(Key={"tenant_id": tenant_id, "invoice_id": invoice_id}).get("Item")
@@ -84,4 +92,8 @@ def lambda_handler(event, context):
             return _response(403, {"message": "Forbidden"})
         raise
 
+    logger.info(json.dumps({
+        "event": "invoke_end", "function": "invoice_update",
+        "tenant_id": tenant_id, "request_id": context.aws_request_id,
+    }))
     return _response(200, result["Attributes"])

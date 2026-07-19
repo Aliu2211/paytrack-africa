@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import uuid
 from datetime import datetime, timezone
@@ -9,6 +10,9 @@ import boto3
 dynamodb = boto3.resource("dynamodb")
 invoices_table = dynamodb.Table(os.environ["INVOICES_TABLE"])
 tenants_table = dynamodb.Table(os.environ["TENANTS_TABLE"])
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 REQUIRED_FIELDS = ["client_name", "client_email", "amount", "due_date"]
 
@@ -38,6 +42,10 @@ def _next_invoice_number(tenant_id):
 
 def lambda_handler(event, context):
     tenant_id = event["requestContext"]["authorizer"]["claims"]["custom:tenant_id"]
+    logger.info(json.dumps({
+        "event": "invoke_start", "function": "invoice_create",
+        "tenant_id": tenant_id, "request_id": context.aws_request_id,
+    }))
     body = json.loads(event.get("body") or "{}", parse_float=Decimal)
 
     missing = [f for f in REQUIRED_FIELDS if body.get(f) in (None, "")]
@@ -66,4 +74,8 @@ def lambda_handler(event, context):
 
     invoices_table.put_item(Item=invoice)
 
+    logger.info(json.dumps({
+        "event": "invoke_end", "function": "invoice_create",
+        "tenant_id": tenant_id, "request_id": context.aws_request_id,
+    }))
     return _response(201, invoice)

@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from datetime import date, timedelta
 from decimal import Decimal
@@ -11,6 +12,9 @@ invoices_table = dynamodb.Table(os.environ["INVOICES_TABLE"])
 tenants_table = dynamodb.Table(os.environ["TENANTS_TABLE"])
 sns = boto3.client("sns")
 ses = boto3.client("ses")
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 SNS_TOPIC_ARN = os.environ["SNS_TOPIC_ARN"]
 SES_SENDER_EMAIL = os.environ["SES_SENDER_EMAIL"]
@@ -71,6 +75,11 @@ def _remind(invoice):
 
 
 def lambda_handler(event, context):
+    logger.info(json.dumps({
+        "event": "invoke_start", "function": "payment_reminder",
+        "request_id": context.aws_request_id,
+    }))
+
     today = date.today()
     horizon = today + timedelta(days=3)
 
@@ -93,5 +102,8 @@ def lambda_handler(event, context):
         "total_reminded": len(reminded_invoice_ids),
         "reminded_invoice_ids": reminded_invoice_ids,
     }
-    print(json.dumps({"event": "payment_reminder_summary", **summary}))
+    logger.info(json.dumps({
+        "event": "invoke_end", "function": "payment_reminder",
+        "request_id": context.aws_request_id, **summary,
+    }))
     return summary

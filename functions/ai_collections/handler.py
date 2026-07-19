@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from datetime import date, datetime
 from decimal import Decimal
@@ -10,6 +11,9 @@ from google import genai
 dynamodb = boto3.resource("dynamodb")
 invoices_table = dynamodb.Table(os.environ["INVOICES_TABLE"])
 secretsmanager = boto3.client("secretsmanager")
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 GEMINI_SECRET_ARN = os.environ["GEMINI_SECRET_ARN"]
 GEMINI_MODEL = "gemini-flash-latest"
@@ -59,6 +63,10 @@ def _generate_collections_message(invoice, days_overdue, tone):
 def lambda_handler(event, context):
     tenant_id = event["requestContext"]["authorizer"]["claims"]["custom:tenant_id"]
     invoice_id = event["pathParameters"]["id"]
+    logger.info(json.dumps({
+        "event": "invoke_start", "function": "ai_collections",
+        "tenant_id": tenant_id, "request_id": context.aws_request_id,
+    }))
 
     invoice = invoices_table.get_item(Key={"tenant_id": tenant_id, "invoice_id": invoice_id}).get("Item")
     if not invoice:
@@ -79,4 +87,8 @@ def lambda_handler(event, context):
         ExpressionAttributeValues={":message": message},
     )
 
+    logger.info(json.dumps({
+        "event": "invoke_end", "function": "ai_collections",
+        "tenant_id": tenant_id, "request_id": context.aws_request_id,
+    }))
     return _response(200, {"invoice_id": invoice_id, "days_overdue": days_overdue, "message": message})

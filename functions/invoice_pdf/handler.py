@@ -1,5 +1,6 @@
 import io
 import json
+import logging
 import os
 from decimal import Decimal
 
@@ -13,6 +14,9 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, Tabl
 dynamodb = boto3.resource("dynamodb")
 invoices_table = dynamodb.Table(os.environ["INVOICES_TABLE"])
 s3 = boto3.client("s3")
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 PDF_BUCKET_NAME = os.environ["PDF_BUCKET_NAME"]
 PRESIGNED_URL_EXPIRY_SECONDS = 86400
@@ -69,6 +73,10 @@ def _build_pdf(invoice):
 def lambda_handler(event, context):
     tenant_id = event["requestContext"]["authorizer"]["claims"]["custom:tenant_id"]
     invoice_id = event["pathParameters"]["id"]
+    logger.info(json.dumps({
+        "event": "invoke_start", "function": "invoice_pdf",
+        "tenant_id": tenant_id, "request_id": context.aws_request_id,
+    }))
 
     invoice = invoices_table.get_item(Key={"tenant_id": tenant_id, "invoice_id": invoice_id}).get("Item")
     if not invoice:
@@ -87,6 +95,10 @@ def lambda_handler(event, context):
         ExpiresIn=PRESIGNED_URL_EXPIRY_SECONDS,
     )
 
+    logger.info(json.dumps({
+        "event": "invoke_end", "function": "invoice_pdf",
+        "tenant_id": tenant_id, "request_id": context.aws_request_id,
+    }))
     return _response(200, {
         "invoice_id": invoice_id,
         "pdf_url": pdf_url,
