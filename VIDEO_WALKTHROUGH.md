@@ -54,7 +54,9 @@ Target length: 3-5 minutes. Screen recording with voiceover, dashboard + AWS con
 
 *[Show the generated message appearing inline]*
 
-> That message is also saved on the invoice record for reference.
+![AI-generated collections message for an overdue invoice](docs/screenshots/05-collections-message.png)
+
+> This one's 25 days overdue, so the tone is already urgent — that's Gemini reading the actual days-overdue figure, not a canned template.
 
 ## 5. Live Metrics in CloudWatch (60s)
 
@@ -64,7 +66,7 @@ Target length: 3-5 minutes. Screen recording with voiceover, dashboard + AWS con
 
 *[Point out invocation graph, error count, latency]*
 
-> Every Lambda has alarms on error rate and duration wired to an SNS topic, and X-Ray tracing follows a request all the way from API Gateway through the Lambda to DynamoDB —
+> Every Lambda has alarms on error rate and duration wired to an SNS alerts topic, and X-Ray tracing follows a request all the way from API Gateway through the Lambda to DynamoDB —
 
 *[Optional: show an X-Ray trace map]*
 
