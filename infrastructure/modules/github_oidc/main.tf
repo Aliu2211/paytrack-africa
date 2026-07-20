@@ -20,16 +20,17 @@ data "aws_iam_policy_document" "assume_role" {
       values   = ["sts.amazonaws.com"]
     }
 
-    # Scoped to this repo (any ref) rather than exactly main -- broadened
-    # temporarily to isolate a sub-claim mismatch (the branch-exact
-    # condition rejected every attempt with a generic AccessDenied that
-    # didn't reveal which part of the claim didn't match). The deploy job's
-    # own `if: github.event_name == 'push' && github.ref == main` already
-    # ensures only main-branch pushes can actually reach the AWS step.
+    # GitHub's sub claim isn't the plain "repo:OWNER/REPO:ref:..." format
+    # AWS's own docs show as the example -- it inlines immutable numeric IDs
+    # after the owner and repo name (confirmed by decoding a real token in
+    # CI): "repo:Aliu2211@117759265/paytrack-africa@1305285531:ref:refs/heads/main".
+    # A plain StringEquals/StringLike on the literal owner/repo string never
+    # matches because of the "@<id>" segments, which is what caused every
+    # attempt to fail with a generic AccessDenied that gave no hint why.
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${var.github_repo}:*"]
+      values   = ["repo:${split("/", var.github_repo)[0]}@*/${split("/", var.github_repo)[1]}@*:ref:refs/heads/main"]
     }
   }
 }
