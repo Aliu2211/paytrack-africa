@@ -10,3 +10,5 @@ dashboard/.next/
 dashboard/node_modules/
 .venv/
 .DS_Store
+PayTrack_FullBuildSpec.md
+PayTrack_FullBuildSpec.docx

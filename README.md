@@ -2,7 +2,7 @@
 
 AI-powered invoice and payment tracking SaaS for Ghanaian SMEs, built for a simulated client (AgroVault Africa Ltd, an accounting firm serving Ghanaian SMEs). Every SME is a fully isolated tenant on shared, multi-tenant serverless infrastructure — one AWS account, one set of DynamoDB tables, tenant data separated entirely by partition key and enforced at every Lambda handler.
 
-Full build spec: [PayTrack_FullBuildSpec.md](PayTrack_FullBuildSpec.md). Video walkthrough script: [VIDEO_WALKTHROUGH.md](VIDEO_WALKTHROUGH.md).
+Video walkthrough script: [VIDEO_WALKTHROUGH.md](VIDEO_WALKTHROUGH.md).
 
 ## Status
 
