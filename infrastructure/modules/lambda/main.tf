@@ -107,6 +107,50 @@ resource "aws_iam_role_policy" "xray_tracing" {
   policy = data.aws_iam_policy_document.xray_tracing.json
 }
 
+data "aws_iam_policy_document" "stream_read" {
+  statement {
+    actions = [
+      "dynamodb:GetRecords",
+      "dynamodb:GetShardIterator",
+      "dynamodb:DescribeStream",
+      "dynamodb:ListStreams",
+    ]
+    resources = [var.invoices_stream_arn]
+  }
+}
+
+resource "aws_iam_role_policy" "stream_read" {
+  name   = "${var.project_name}-lambda-stream-${var.environment}"
+  role   = aws_iam_role.lambda_exec.id
+  policy = data.aws_iam_policy_document.stream_read.json
+}
+
+data "aws_iam_policy_document" "analytics_table_access" {
+  statement {
+    actions   = ["dynamodb:PutItem", "dynamodb:GetItem", "dynamodb:UpdateItem", "dynamodb:Query"]
+    resources = [var.analytics_table_arn]
+  }
+}
+
+resource "aws_iam_role_policy" "analytics_table_access" {
+  name   = "${var.project_name}-lambda-analytics-${var.environment}"
+  role   = aws_iam_role.lambda_exec.id
+  policy = data.aws_iam_policy_document.analytics_table_access.json
+}
+
+data "aws_iam_policy_document" "cognito_list_users" {
+  statement {
+    actions   = ["cognito-idp:ListUsers"]
+    resources = [var.cognito_user_pool_arn]
+  }
+}
+
+resource "aws_iam_role_policy" "cognito_list_users" {
+  name   = "${var.project_name}-lambda-cognito-${var.environment}"
+  role   = aws_iam_role.lambda_exec.id
+  policy = data.aws_iam_policy_document.cognito_list_users.json
+}
+
 locals {
   common_env_vars = {
     INVOICES_TABLE = var.invoices_table_name
@@ -126,6 +170,14 @@ locals {
     }
     invoice_pdf = {
       PDF_BUCKET_NAME = var.pdf_bucket_name
+    }
+    analytics = {
+      ANALYTICS_TABLE = var.analytics_table_name
+    }
+    weekly_report = {
+      ANALYTICS_TABLE      = var.analytics_table_name
+      SES_SENDER_EMAIL     = var.ses_sender_email
+      COGNITO_USER_POOL_ID = var.cognito_user_pool_id
     }
   }
 }

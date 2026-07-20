@@ -49,4 +49,28 @@ resource "aws_dynamodb_table" "invoices" {
   point_in_time_recovery {
     enabled = true
   }
+
+  stream_enabled   = true
+  stream_view_type = "NEW_AND_OLD_IMAGES"
+}
+
+resource "aws_dynamodb_table" "analytics" {
+  name         = "${var.project_name}-analytics-${var.environment}"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "tenant_id"
+  range_key    = "metric_key"
+
+  attribute {
+    name = "tenant_id"
+    type = "S"
+  }
+
+  attribute {
+    name = "metric_key"
+    type = "S"
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
 }

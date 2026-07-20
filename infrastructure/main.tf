@@ -54,6 +54,8 @@ module "lambda" {
     "payment_reminder",
     "ai_collections",
     "invoice_pdf",
+    "analytics",
+    "weekly_report",
   ]
 
   sns_topic_arn     = module.sns.topic_arn
@@ -61,6 +63,18 @@ module "lambda" {
   pdf_bucket_name   = module.s3_pdf.bucket_name
   pdf_bucket_arn    = module.s3_pdf.bucket_arn
   gemini_secret_arn = data.aws_secretsmanager_secret.gemini_api_key.arn
+
+  invoices_stream_arn   = module.dynamodb.invoices_stream_arn
+  analytics_table_name  = module.dynamodb.analytics_table_name
+  analytics_table_arn   = module.dynamodb.analytics_table_arn
+  cognito_user_pool_id  = module.cognito.user_pool_id
+  cognito_user_pool_arn = module.cognito.user_pool_arn
+}
+
+resource "aws_lambda_event_source_mapping" "analytics_stream" {
+  event_source_arn  = module.dynamodb.invoices_stream_arn
+  function_name     = module.lambda.function_arns["analytics"]
+  starting_position = "LATEST"
 }
 
 module "api_gateway" {
@@ -81,6 +95,9 @@ module "eventbridge" {
 
   payment_reminder_function_arn  = module.lambda.function_arns["payment_reminder"]
   payment_reminder_function_name = module.lambda.function_names["payment_reminder"]
+
+  weekly_report_function_arn  = module.lambda.function_arns["weekly_report"]
+  weekly_report_function_name = module.lambda.function_names["weekly_report"]
 }
 
 module "cloudwatch" {

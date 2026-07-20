@@ -52,3 +52,28 @@ variable "gemini_secret_arn" {
   type        = string
   description = "Secrets Manager ARN holding the Gemini API key"
 }
+
+variable "invoices_stream_arn" {
+  type        = string
+  description = "DynamoDB Streams ARN for the invoices table"
+}
+
+variable "analytics_table_name" {
+  type        = string
+  description = "Analytics DynamoDB table name"
+}
+
+variable "analytics_table_arn" {
+  type        = string
+  description = "Analytics DynamoDB table ARN"
+}
+
+variable "cognito_user_pool_id" {
+  type        = string
+  description = "Cognito user pool ID, for weekly_report's tenant email lookup"
+}
+
+variable "cognito_user_pool_arn" {
+  type        = string
+  description = "Cognito user pool ARN, to scope weekly_report's ListUsers permission"
+}

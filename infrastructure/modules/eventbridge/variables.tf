@@ -13,3 +13,11 @@ variable "payment_reminder_function_arn" {
 variable "payment_reminder_function_name" {
   type = string
 }
+
+variable "weekly_report_function_arn" {
+  type = string
+}
+
+variable "weekly_report_function_name" {
+  type = string
+}
