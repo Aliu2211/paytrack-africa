@@ -90,9 +90,23 @@ data "aws_iam_policy_document" "scoped_iam" {
   }
 
   statement {
-    sid       = "ReadGeminiSecret"
-    actions   = ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"]
+    sid = "ReadGeminiSecret"
+    actions = [
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:DescribeSecret",
+      "secretsmanager:GetResourcePolicy",
+    ]
     resources = ["arn:aws:secretsmanager:*:*:secret:${var.project_name}/*"]
+  }
+
+  # Needed just to read the OIDC provider this role's own trust policy is
+  # scoped to -- Terraform's data source lookup for it (main.tf) runs under
+  # this role's credentials in CI, not the identity that created the
+  # provider, so it needs its own explicit read permission.
+  statement {
+    sid       = "ReadGithubOidcProvider"
+    actions   = ["iam:GetOpenIDConnectProvider"]
+    resources = [data.aws_iam_openid_connect_provider.github.arn]
   }
 
   statement {
