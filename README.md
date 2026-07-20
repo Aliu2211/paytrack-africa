@@ -16,6 +16,8 @@ All five phases are complete:
 
 ## Architecture
 
+Shapes: rectangles are compute (API Gateway, Lambda), cylinders are data stores, the diamond is a decision point, hexagons are external third-party services, and flags are eventing/notification services (EventBridge, SNS, SES).
+
 ```mermaid
 flowchart TD
     Client([Client / Dashboard]) -->|"HTTPS + Cognito JWT"| APIGW[API Gateway]
@@ -29,26 +31,36 @@ flowchart TD
     Collect --> DDB
     PDF --> DDB
 
-    Collect --> Gemini[[Gemini API]]
+    Collect -->|"prompt"| Gemini{{Gemini API}}
     Secrets[("Secrets Manager<br/>Gemini API key")] -.-> Collect
 
     PDF --> S3PDF[("S3<br/>invoice PDFs, 7-day lifecycle")]
+    S3PDF -.->|"24h presigned URL"| Client
 
-    EventBridge[["EventBridge<br/>cron 8am Ghana time"]] --> Reminder[payment_reminder]
+    CronReminder>"EventBridge<br/>cron 8am Ghana time"] --> Reminder[payment_reminder]
     Reminder --> DDB
-    Reminder --> SNS[[SNS Topic]]
-    Reminder --> SES[[SES Email]]
+    Reminder -->|"publish"| SNSReminders>"SNS: payment-reminders"]
+    Reminder -->|"send"| SESOut>"SES"]
 
     DDB -->|"DynamoDB Stream"| Analytics[analytics]
     Analytics --> AnalyticsTable[("DynamoDB analytics<br/>per-tenant counters")]
 
-    WeeklyCron[["EventBridge<br/>cron 9am Ghana time, Mondays"]] --> WeeklyReport[weekly_report]
+    CronWeekly>"EventBridge<br/>cron 9am Ghana time, Mondays"] --> WeeklyReport[weekly_report]
     WeeklyReport --> DDB
     WeeklyReport --> AnalyticsTable
     WeeklyReport -->|"ListUsers"| CognitoPool
-    WeeklyReport --> SES
+    WeeklyReport -->|"send"| SESOut
 
     CognitoPool[("Cognito User Pool<br/>custom:tenant_id claim")] -.-> Auth
+
+    subgraph Observability
+        CW[["CloudWatch<br/>alarms + dashboard"]]
+        XRay[["X-Ray<br/>distributed tracing"]]
+    end
+    APIGW -.-> XRay
+    CRUD & Collect & PDF & Reminder & Analytics & WeeklyReport -.-> CW
+    CW -->|"breach"| SNSAlerts>"SNS: engineering-alerts"]
+    SNSAlerts -.->|"email"| AlertEmail([Ops inbox])
 ```
 
 **AWS services used:**
